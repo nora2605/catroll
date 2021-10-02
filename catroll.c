@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #define chunk 1024
 
@@ -22,10 +23,18 @@ char *join(char *args[], char *inter) {
     return result;
 }
 
+char *cycle(char *str, size_t s) {
+    char *res = malloc(s);
+    for (int i = 0; i < s; i++)
+        res[i] = str[(i + 1) % s];
+    return res;
+}
+
 int main(int argc, char *argv[])
 {
     enum { TEXT_MODE, FILE_MODE } input_mode = FILE_MODE;
     size_t optind;
+    long delay = 100000;
     char *help_text = "No help available yet.";
 
     for (optind = 1; optind < argc && argv[optind][0] == '-'; optind++)
@@ -34,12 +43,19 @@ int main(int argc, char *argv[])
         {
             case 't': input_mode = TEXT_MODE; break;
             case 'f': input_mode = FILE_MODE; break;
+            case 'd': 
+                delay = strtol(argv[++optind], NULL, 10);
+                if (!delay) {
+                    fprintf(stderr, "Invalid integer for -d.\n");
+                    exit(EXIT_FAILURE);
+                } else delay *= 1000;
+                break;
             case 'h':
                 printf(help_text);
                 exit(EXIT_SUCCESS);
                 break;
             default:
-                fprintf(stderr, "Usage: %s [-tf] <input>\nFor more information see %s -h\n", argv[0], argv[0]);
+                fprintf(stderr, "Usage: %s [-tfdh] <input>\nFor more information see %s -h\n", argv[0], argv[0]);
                 exit(EXIT_FAILURE);
                 break;
         }
@@ -47,7 +63,7 @@ int main(int argc, char *argv[])
 
     if (!*(argv + optind))
     {
-        fprintf(stderr, "Usage: %s [-tf] <input>\nFor more information see %s -h\n", argv[0], argv[0]);
+        fprintf(stderr, "Usage: %s [-tfdh] <input>\nFor more information see %s -h\n", argv[0], argv[0]);
         exit(EXIT_FAILURE);
     }
     argv += optind;
@@ -83,5 +99,10 @@ int main(int argc, char *argv[])
     else
         input = join(argv, " ");
 
-    
+    size_t s = strlen(input);
+    while (true) {
+        printf("%s\n", input);
+        input = cycle(input, s);
+        usleep(delay);
+    }
 }
