@@ -3,7 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <unistd.h>
+#ifdef _WIN32
+#include <windows.h>	// for Sleep()
+#else 
+#include <unistd.h>	// for usleep()
+#endif
 
 #define chunk 1024
 
@@ -24,9 +28,10 @@ char *join(char *args[], char *inter) {
 }
 
 char *cycle(char *str, size_t s) {
-    char *res = malloc(s);
+    char *res = malloc(s+1);
     for (int i = 0; i < s; i++)
         res[i] = str[(i + 1) % s];
+    res[s] = '\0';
     return res;
 }
 
@@ -103,6 +108,10 @@ int main(int argc, char *argv[])
     while (true) {
         printf("%s\n", input);
         input = cycle(input, s);
+        #ifdef _WIN32
+        Sleep(delay/1000);
+        #else
         usleep(delay);
+        #endif
     }
 }
