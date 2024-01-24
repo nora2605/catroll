@@ -32,6 +32,7 @@ char *cycle(char *str, size_t s) {
     for (int i = 0; i < s; i++)
         res[i] = str[(i + 1) % s];
     res[s] = '\0';
+    free(str);
     return res;
 }
 
